@@ -1,21 +1,11 @@
 name: Build Abduh Bro APK
-
-on:
-workflow_dispatch:
-push:
-paths:
-- 'AbduhBro_Android_Project.zip'
-- '.github/workflows/android.yml'
-
-jobs:
-build:
-runs-on: ubuntu-latest
-
+on: workflow_dispatch: push:
+jobs: build: runs-on: ubuntu-latest
 steps:
   - name: Checkout
     uses: actions/checkout@v4
 
-  - name: Setup Java 17
+  - name: Setup Java
     uses: actions/setup-java@v4
     with:
       distribution: temurin
@@ -31,14 +21,12 @@ steps:
       mkdir project
       unzip AbduhBro_Android_Project.zip -d project
 
-  - name: Fix JVM target
+  - name: Fix Java and Kotlin targets
     run: |
-      sed -i '/buildFeatures/i\
-          compileOptions {\
-              sourceCompatibility JavaVersion.VERSION_17\
-              targetCompatibility JavaVersion.VERSION_17\
-          }' project/app/build.gradle.kts
-      sed -i '/^tasks.withType/i tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach { kotlinOptions { jvmTarget = "17" } }' project/app/build.gradle.kts
+      sed -i 's/JavaVersion.VERSION_1_8/JavaVersion.VERSION_17/g' project/app/build.gradle.kts
+      sed -i 's/JavaVersion.VERSION_1.8/JavaVersion.VERSION_17/g' project/app/build.gradle.kts
+      sed -i '/android {/a\    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n    }' project/app/build.gradle.kts
+      sed -i '/^tasks.withType/i tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach { kotlinOptions.jvmTarget = "17" }' project/app/build.gradle.kts
 
   - name: Build APK
     working-directory: project
