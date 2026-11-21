@@ -1,42 +1,51 @@
 name: Build Abduh Bro APK
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'AbduhBro_Android_Project.zip'
-      - '.github/workflows/android.yml'
+workflow_dispatch:
+push:
+paths:
+- 'AbduhBro_Android_Project.zip'
+- '.github/workflows/android.yml'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+build:
+runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
+  - name: Setup Java 17
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
+  - name: Setup Gradle
+    uses: gradle/actions/setup-gradle@v4
+    with:
+      gradle-version: '8.9'
 
-      - name: Extract project
-        run: |
-          mkdir project
-          unzip AbduhBro_Android_Project.zip -d project
+  - name: Extract project
+    run: |
+      mkdir project
+      unzip AbduhBro_Android_Project.zip -d project
 
-      - name: Build APK
-        working-directory: project
-        run: gradle assembleDebug
+  - name: Fix JVM target
+    run: |
+      sed -i '/buildFeatures/i\
+          compileOptions {\
+              sourceCompatibility JavaVersion.VERSION_17\
+              targetCompatibility JavaVersion.VERSION_17\
+          }' project/app/build.gradle.kts
+      sed -i '/^tasks.withType/i tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach { kotlinOptions { jvmTarget = "17" } }' project/app/build.gradle.kts
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Abduh-Bro-APK
-          path: project/app/build/outputs/apk/debug/app-debug.apk
+  - name: Build APK
+    working-directory: project
+    run: gradle assembleDebug
+
+  - name: Upload APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: Abduh-Bro-APK
+      path: project/app/build/outputs/apk/debug/app-debug.apk
