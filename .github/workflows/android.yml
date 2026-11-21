@@ -14,8 +14,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Extract project
-        run: unzip -o AbduhBro_Android_Project.zip -d project
-
+run: unzip -o AbduhBro_Android_Project.zip -d project 
+- name: Fix Compose import
+        run: |
+          python3 -c "from pathlib import Path; p=Path('project/app/src/main/java/com/abduhbro/accounting/MainActivity.kt'); s=p.read_text(); s=s.replace('import androidx.compose.ui.graphics.vector.ImageVector', 'import androidx.compose.ui.graphics.vector.ImageVector\nimport androidx.compose.ui.platform.LocalLayoutDirection'); p.write_text(s)"
       - name: Fix Java compatibility
         run: |
           python3 -c "from pathlib import Path; p=Path('project/app/build.gradle.kts'); s=p.read_text(); s=s.replace('    buildFeatures {', '    compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }\n    kotlinOptions { jvmTarget = \"17\" }\n    buildFeatures {'); p.write_text(s)"
